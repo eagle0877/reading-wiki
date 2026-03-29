@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Reading Wiki</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #1a1209;
+    --paper: #f5f0e8;
+    --cream: #ede7d3;
+    --amber: #c8783a;
+    --amber-light: #e8a96a;
+    --amber-dark: #8b4f1e;
+    --sage: #5a6e52;
+    --muted: #7a6e5f;
+    --border: #cfc4ae;
+    --sidebar-w: 280px;
+    --header-h: 60px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  header {
+    height: var(--header-h);
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    border-bottom: 3px solid var(--amber);
+    flex-shrink: 0;
+    z-index: 100;
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--paper); flex: 1; }
+  header h1 span { color: var(--amber-light); font-style: italic; }
+
+  #search-box {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    color: var(--paper);
+    padding: 6px 12px;
+    width: 200px;
+    outline: none;
+  }
+
+  .header-btn {
+    background: var(--amber);
+    color: var(--ink);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .workspace { display: flex; flex: 1; overflow: hidden; }
+
+  aside {
+    width: var(--sidebar-w);
+    background: var(--cream);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-section { border-bottom: 1px solid var(--border); }
+  .sidebar-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px 6px;
+  }
+  .sidebar-list { list-style: none; padding-bottom: 6px; }
+  .sidebar-list li {
+    padding: 5px 16px;
+    font-size: 0.87rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-list li:hover { background: rgba(200,120,58,0.1); border-left-color: var(--amber); }
+  .sidebar-list li.active { background: rgba(200,120,58,0.15); border-left-color: var(--amber); font-weight: 500; color: var(--amber-dark); }
+  
+  .count {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    background: var(--border);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .sync-btn {
+    width: calc(100% - 32px);
+    margin: 4px 16px 12px;
+    padding: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    background: none;
+    border: 1px dashed var(--amber);
+    color: var(--amber-dark);
+    cursor: pointer;
+    text-align: left;
+  }
+  .sync-btn:hover { background: var(--amber-light); color: var(--ink); border-style: solid; }
+
+  main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+
+  #toc-view { padding: 28px 36px; }
+  .view-title { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; margin-bottom: 20px; }
+  
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .book-card {
+    background: #fff; border: 1px solid var(--border);
+    display: flex; gap: 14px; padding: 12px; cursor: pointer;
+    border-radius: 4px; transition: transform 0.1s;
+  }
+  .book-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+  .card-cover {
+    width: 60px; height: 90px; background: var(--cream);
+    object-fit: cover; border-radius: 2px; flex-shrink: 0;
+  }
+
+  .book-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; line-height: 1.2; }
+  .book-author { font-size: 0.8rem; color: var(--muted); font-style: italic; margin-top: 2px; }
+  .star-rating { color: #f1c40f; font-size: 0.85rem; margin-top: 4px; letter-spacing: 1px; }
+
+  #tiddler-view, #new-view { display: none; padding: 36px 48px; max-width: 900px; margin: 0 auto; width: 100%; }
+  .tiddler-layout { display: flex; gap: 32px; }
+  .detail-cover { width: 220px; border-radius: 4px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  
+  .tiddler-meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    background: var(--cream); border: 1px solid var(--border); padding: 16px; border-radius: 4px; margin-top: 15px;
+  }
+  .meta-item label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; text-transform: uppercase; color: var(--muted); display: block; }
+  
+  .cat-badge { background: var(--amber); color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
+  .tiddler-body { font-size: 0.95rem; line-height: 1.8; white-space: pre-wrap; margin-top: 8px; margin-bottom: 20px; }
+
+  .edit-field { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 3px; font-family: 'Lora', serif; margin-bottom: 10px; font-size: 0.9rem; }
+  .form-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 5px; }
+
+  .category-manager { border: 1px solid var(--border); background: #fff; padding: 10px; max-height: 120px; overflow-y: auto; border-radius: 3px; margin-bottom: 10px; }
+  .cat-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; margin-bottom: 4px; cursor: pointer; }
+
+  .action-bar { display: flex; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .btn-danger { background: #a33; color: white; }
+  .btn-secondary { background: none; border: 1px solid var(--border); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 My <span>Reading Wiki</span></h1>
+  <input type="text" id="search-box" placeholder="Search title or author..." oninput="handleSearch(this.value)">
+  <button class="header-btn" onclick="showNewView()">＋ Add Book</button>
+</header>
+
+<div class="workspace">
+  <aside>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Browse</div>
+      <ul class="sidebar-list">
+        <li onclick="showTOC('all')" id="nav-all">🏠 All Books <span class="count" id="cnt-all">0</span></li>
+        <li onclick="showTOC('reading')" id="nav-reading">📖 Reading <span class="count" id="cnt-reading">0</span></li>
+        <li onclick="showTOC('finished')" id="nav-finished">✅ Finished <span class="count" id="cnt-finished">0</span></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Reading History</div>
+      <ul class="sidebar-list" id="year-nav"></ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Categories</div>
+      <ul class="sidebar-list" id="cat-nav"></ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Sync & Backup</div>
+      <button class="sync-btn" onclick="exportData()">📤 Export Library (.json)</button>
+      <button class="sync-btn" onclick="document.getElementById('import-file').click()">📥 Import Library</button>
+      <input type="file" id="import-file" style="display:none" onchange="importData(event)">
+    </div>
+  </aside>
+
+  <main>
+    <div id="toc-view">
+      <div class="view-title" id="toc-title">All Books</div>
+      <div id="toc-content"></div>
+    </div>
+
+    <div id="tiddler-view">
+      <div class="tiddler-layout">
+        <div style="flex-shrink: 0;"><img id="tid-cover" class="detail-cover" src=""></div>
+        <div style="flex: 1;">
+            <div id="tid-rating" class="star-rating" style="font-size: 1.2rem; margin-bottom: 5px;"></div>
+            <h1 id="tid-title" style="font-family: 'Playfair Display'; font-size: 2.2rem;"></h1>
+            <p id="tid-author" style="font-style: italic; color: var(--muted); margin-bottom: 10px;"></p>
+            <div id="tid-cat-container" style="margin-bottom: 15px;"></div>
+            
+            <div class="tiddler-meta-grid">
+                <div class="meta-item"><label>Started</label><span id="tid-started"></span></div>
+                <div class="meta-item"><label>Finished</label><span id="tid-finished"></span></div>
+            </div>
+
+            <h3 style="margin-top:24px; color:var(--amber-dark); font-style:italic;">Synopsis</h3>
+            <div class="tiddler-body" id="tid-synopsis"></div>
+            <h3 style="margin-top:24px; color:var(--amber-dark); font-style:italic;">My Thoughts</h3>
+            <div class="tiddler-body" id="tid-thoughts"></div>
+            
+            <div class="action-bar">
+                <button class="header-btn" onclick="editCurrentTiddler()">Edit</button>
+                <button class="header-btn btn-danger" onclick="deleteCurrentBook()">Delete</button>
+                <button class="header-btn btn-secondary" onclick="goBack()">Back</button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="new-view">
+      <div class="view-title" id="form-title">Add/Edit Book</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="form-row"><label class="form-label">Title *</label><input class="edit-field" id="f-title"></div>
+        <div class="form-row"><label class="form-label">Author *</label><input class="edit-field" id="f-author"></div>
+        <div class="form-row"><label class="form-label">Cover Image URL</label><input class="edit-field" id="f-cover" placeholder="https://..."></div>
+        <div class="form-row">
+            <label class="form-label">Status</label>
+            <select class="edit-field" id="f-status" onchange="toggleRatingField()">
+                <option value="tbr">To Be Read</option>
+                <option value="reading">Reading</option>
+                <option value="finished">Finished</option>
+            </select>
+        </div>
+        <div class="form-row"><label class="form-label">Date Started</label><input type="date" class="edit-field" id="f-date-started"></div>
+        <div class="form-row"><label class="form-label">Date Finished</label><input type="date" class="edit-field" id="f-date-finished"></div>
+        <div class="form-row" id="rating-container" style="display:none;">
+            <label class="form-label">Rating</label>
+            <select class="edit-field" id="f-rating">
+                <option value="0">No Rating</option>
+                <option value="1">★</option><option value="2">★★</option><option value="3">★★★</option><option value="4">★★★★</option><option value="5">★★★★★</option>
+            </select>
+        </div>
+      </div>
+
+      <label class="form-label" style="margin-top: 10px;">Categories</label>
+      <div class="category-manager" id="f-cat-list"></div>
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input class="edit-field" id="f-new-cat" placeholder="Add category..." style="margin-bottom:0; flex:1;">
+        <button type="button" class="header-btn" onclick="addNewCategory()">Add</button>
+      </div>
+
+      <label class="form-label">Synopsis</label>
+      <textarea class="edit-field" id="f-synopsis" style="height:100px;"></textarea>
+      <label class="form-label">Thoughts</label>
+      <textarea class="edit-field" id="f-thoughts" style="height:150px;"></textarea>
+      
+      <div class="action-bar">
+        <button class="header-btn" onclick="saveForm()">Save Book</button>
+        <button class="header-btn btn-secondary" onclick="cancelForm()">Cancel</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let books = JSON.parse(localStorage.getItem('readingWikiBooks')) || [];
+let categories = JSON.parse(localStorage.getItem('readingWikiCats')) || ["Fiction", "Non-Fiction", "Horror", "Sci-Fi"];
+let activeFilter = 'all';
+let searchQuery = '';
+let editingId = null;
+let currentTiddlerId = null;
+
+const placeholderCover = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI2MCI+PHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjZWRlN2QzIi8+PC9zdmc+';
+
+function save() { 
+    localStorage.setItem('readingWikiBooks', JSON.stringify(books)); 
+    localStorage.setItem('readingWikiCats', JSON.stringify(categories));
+}
+
+function exportData() {
+    const dataStr = JSON.stringify({ books, categories }, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `reading_library_backup_${new Date().toISOString().slice(0,10)}.json`;
+    link.click();
+}
+
+function importData(event) {
+    const file = event.target.files;
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (confirm("Importing will add books to your current library. Continue?")) {
+                books = [...books, ...imported.books.filter(ib => !books.some(b => b.id === ib.id))];
+                categories = [...new Set([...categories, ...imported.categories])];
+                save();
+                renderTOC();
+            }
+        } catch (err) { alert("Invalid backup file."); }
+    };
+    reader.readAsText(file);
+}
+
+function addNewCategory() {
+    const input = document.getElementById('f-new-cat');
+    const val = input.value.trim();
+    if (val && !categories.includes(val)) {
+        categories.push(val);
+        input.value = '';
+        renderFormCategories();
+        save();
+    }
+}
+
+function renderFormCategories() {
+    const container = document.getElementById('f-cat-list');
+    container.innerHTML = categories.map(cat => `<label class="cat-item"><input type="checkbox" name="book-cats" value="${cat}"> ${cat}</label>`).join('');
+}
+
+function toggleRatingField() {
+    const status = document.getElementById('f-status').value;
+    document.getElementById('rating-container').style.display = (status === 'finished') ? 'block' : 'none';
+}
+
+function refreshSidebar() {
+    document.getElementById('cnt-all').textContent = books.length;
+    document.getElementById('cnt-reading').textContent = books.filter(b => b.status === 'reading').length;
+    document.getElementById('cnt-finished').textContent = books.filter(b => b.status === 'finished').length;
+
+    const catCounts = {};
+    books.forEach(b => (b.categories || []).forEach(c => catCounts[c] = (catCounts[c] || 0) + 1));
+    document.getElementById('cat-nav').innerHTML = Object.entries(catCounts).sort().map(([c, n]) => 
+        `<li onclick="showTOC('cat:${c}')">📁 ${c} <span class="count">${n}</span></li>`).join('');
+
+    const years = {};
+    books.forEach(b => {
+        if (b.status === 'finished' && b.dateFinished) {
+            const year = b.dateFinished.substring(0, 4);
+            years[year] = (years[year] || 0) + 1;
+        }
+    });
+    document.getElementById('year-nav').innerHTML = Object.entries(years).sort((a,b) => b - a).map(([y, n]) => 
+        `<li onclick="showTOC('year:${y}')">🗓️ ${y} (${n})</li>`).join('');
+}
+
+function renderTOC() {
+    let list = [...books];
+    const titleEl = document.getElementById('toc-title');
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+    }
+    if (activeFilter === 'reading') list = list.filter(b => b.status === 'reading');
+    else if (activeFilter === 'finished') list = list.filter(b => b.status === 'finished');
+    else if (activeFilter.startsWith('cat:')) list = list.filter(b => (b.categories || []).includes(activeFilter.slice(4)));
+    else if (activeFilter.startsWith('year:')) list = list.filter(b => b.status === 'finished' && b.dateFinished && b.dateFinished.startsWith(activeFilter.slice(5)));
+
+    titleEl.textContent = activeFilter.startsWith('year:') ? `Finished in ${activeFilter.slice(5)}` : (activeFilter.startsWith('cat:') ? activeFilter.slice(4) : activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1));
+
+    const content = document.getElementById('toc-content');
+    content.innerHTML = `<div class="book-grid">${list.map(b => `
+        <div class="book-card" onclick="openTiddler(${b.id})">
+            <img class="card-cover" src="${b.cover || placeholderCover}" onerror="this.src='${placeholderCover}'">
+            <div style="overflow: hidden;">
+                <div class="book-title">${b.title}</div>
+                <div class="book-author">${b.author}</div>
+                ${b.rating > 0 ? `<div class="star-rating">${'★'.repeat(b.rating)}</div>` : ''}
+                <div style="font-size:0.65rem; color:var(--muted); margin-top:5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${(b.categories || []).join(', ')}</div>
+            </div>
+        </div>
+    `).join('')}</div>`;
+    refreshSidebar();
+}
+
+function openTiddler(id) {
+    const b = books.find(x => x.id === id);
+    currentTiddlerId = id;
+    document.getElementById('toc-view').style.display = 'none';
+    document.getElementById('tiddler-view').style.display = 'block';
+    document.getElementById('tid-cover').src = b.cover || placeholderCover;
+    document.getElementById('tid-title').textContent = b.title;
+    document.getElementById('tid-author').textContent = b.author;
+    document.getElementById('tid-rating').textContent = b.rating > 0 ? '★'.repeat(b.rating) : '';
+    document.getElementById('tid-cat-container').innerHTML = (b.categories || []).map(c => `<span class="cat-badge">${c}</span>`).join('');
+    document.getElementById('tid-started').textContent = b.dateStarted || '—';
+    document.getElementById('tid-finished').textContent = b.dateFinished || '—';
+    document.getElementById('tid-synopsis').textContent = b.synopsis || '';
+    document.getElementById('tid-thoughts').textContent = b.thoughts || '';
+}
+
+function saveForm() {
+    const selectedCats = Array.from(document.querySelectorAll('input[name="book-cats"]:checked')).map(cb => cb.value);
+    const data = {
+        id: editingId || Date.now(),
+        title: document.getElementById('f-title').value || "Untitled",
+        author: document.getElementById('f-author').value || "Unknown",
+        cover: document.getElementById('f-cover').value,
+        status: document.getElementById('f-status').value,
+        rating: parseInt(document.getElementById('f-rating').value) || 0,
+        categories: selectedCats,
+        dateStarted: document.getElementById('f-date-started').value,
+        dateFinished: document.getElementById('f-date-finished').value,
+        synopsis: document.getElementById('f-synopsis').value,
+        thoughts: document.getElementById('f-thoughts').value
+    };
+    if (editingId) books[books.findIndex(b => b.id === editingId)] = data;
+    else books.push(data);
+    save();
+    showTOC('all');
+}
+
+function deleteCurrentBook() {
+    if (confirm("Delete this book?")) {
+        books = books.filter(b => b.id !== currentTiddlerId);
+        save();
+        showTOC('all');
+    }
+}
+
+function editCurrentTiddler() {
+    const b = books.find(x => x.id === currentTiddlerId);
+    editingId = b.id;
+    document.getElementById('f-title').value = b.title;
+    document.getElementById('f-author').value = b.author;
+    document.getElementById('f-cover').value = b.cover || '';
+    document.getElementById('f-status').value = b.status;
+    document.getElementById('f-rating').value = b.rating || 0;
+    document.getElementById('f-date-started').value = b.dateStarted || '';
+    document.getElementById('f-date-finished').value = b.dateFinished || '';
+    document.getElementById('f-synopsis').value = b.synopsis || '';
+    document.getElementById('f-thoughts').value = b.thoughts || '';
+    toggleRatingField();
+    renderFormCategories();
+    document.querySelectorAll('input[name="book-cats"]').forEach(c => c.checked = (b.categories || []).includes(c.value));
+    document.getElementById('tiddler-view').style.display = 'none';
+    document.getElementById('new-view').style.display = 'block';
+}
+
+function handleSearch(q) { searchQuery = q; renderTOC(); }
+function showTOC(f) { activeFilter = f; document.getElementById('new-view').style.display = 'none'; document.getElementById('tiddler-view').style.display = 'none'; document.getElementById('toc-view').style.display = 'block'; renderTOC(); }
+function showNewView() { editingId = null; document.querySelectorAll('.edit-field').forEach(i => i.value = ''); document.getElementById('f-rating').value = 0; toggleRatingField(); renderFormCategories(); document.getElementById('toc-view').style.display = 'none'; document.getElementById('tiddler-view').style.display = 'none'; document.getElementById('new-view').style.display = 'block'; }
+function goBack() { showTOC('all'); }
+function cancelForm() { editingId ? openTiddler(editingId) : showTOC('all'); }
+
+renderTOC();
+</script>
+</body>
+</html>
