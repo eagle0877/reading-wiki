@@ -11,33 +11,29 @@
   body { font-family: 'Lora', serif; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
   header { height: var(--header-h); background: var(--ink); display: flex; align-items: center; padding: 0 20px; gap: 16px; border-bottom: 3px solid var(--amber); flex-shrink: 0; z-index: 100; }
   header h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--paper); flex: 1; }
-  header h1 span { color: var(--amber-light); font-style: italic; }
-  #search-box { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: var(--paper); padding: 6px 12px; width: 200px; outline: none; }
   .header-btn { background: var(--amber); color: var(--ink); border: none; padding: 6px 14px; border-radius: 3px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
   .workspace { display: flex; flex: 1; overflow: hidden; }
   aside { width: var(--sidebar-w); background: var(--cream); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
-  .sidebar-section { border-bottom: 1px solid var(--border); }
-  .sidebar-section-title { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--muted); padding: 10px 16px 6px; }
-  .sidebar-list { list-style: none; padding-bottom: 6px; }
-  .sidebar-list li { padding: 5px 16px; font-size: 0.87rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
-  .sidebar-list li:hover { background: rgba(200,120,58,0.1); border-left-color: var(--amber); }
-  .count { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #7a6e5f; background: var(--border); padding: 1px 6px; border-radius: 10px; }
-  .sync-btn { width: calc(100% - 32px); margin: 4px 16px 12px; padding: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; text-transform: uppercase; background: none; border: 1px dashed var(--amber); color: var(--amber-dark); cursor: pointer; text-align: left; }
+  .sidebar-section { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .sidebar-section-title { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: #7a6e5f; padding: 10px 16px 6px; }
+  .sidebar-list { list-style: none; }
+  .sidebar-list li { padding: 5px 16px; font-size: 0.87rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-list li:hover { background: rgba(200,120,58,0.1); }
+  .count { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; background: var(--border); padding: 1px 6px; border-radius: 10px; }
+  .sync-btn { width: calc(100% - 32px); margin: 4px 16px; padding: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; background: none; border: 1px dashed var(--amber); color: var(--amber-dark); cursor: pointer; text-align: left; }
   main { flex: 1; overflow-y: auto; padding: 28px 36px; }
-  .view-title { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; margin-bottom: 20px; }
-  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-  .book-card { background: #fff; border: 1px solid var(--border); display: flex; gap: 14px; padding: 12px; cursor: pointer; border-radius: 4px; }
-  .card-cover { width: 60px; height: 90px; background: var(--cream); object-fit: cover; }
-  .book-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; }
-  .book-author { font-size: 0.8rem; color: #7a6e5f; font-style: italic; }
-  #tiddler-view, #new-view { display: none; }
+  .view-title { font-family: 'Playfair Display', serif; font-size: 1.9rem; margin-bottom: 20px; }
+  .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .book-card { background: #fff; border: 1px solid var(--border); padding: 15px; border-radius: 4px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+  .edit-field { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 3px; margin-bottom: 15px; font-family: 'Lora', serif; }
+  label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; display: block; margin-bottom: 5px; }
+  .btn-group { display: flex; gap: 10px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>📚 My <span>Reading Wiki</span></h1>
-  <input type="text" id="search-box" placeholder="Search..." oninput="handleSearch(this.value)">
+  <h1>📚 My Reading Wiki</h1>
   <button class="header-btn" onclick="showNewView()">＋ Add Book</button>
 </header>
 
@@ -59,10 +55,28 @@
     </div>
   </aside>
 
-  <main id="main-content">
+  <main>
     <div id="toc-view">
       <div class="view-title" id="toc-title">All Books</div>
       <div id="toc-content" class="book-grid"></div>
+    </div>
+
+    <div id="new-view" style="display:none; max-width: 600px;">
+      <div class="view-title">Add New Book</div>
+      <label>Title</label>
+      <input type="text" id="f-title" class="edit-field">
+      <label>Author</label>
+      <input type="text" id="f-author" class="edit-field">
+      <label>Status</label>
+      <select id="f-status" class="edit-field">
+        <option value="reading">Currently Reading</option>
+        <option value="finished">Finished</option>
+        <option value="tbr">To Be Read</option>
+      </select>
+      <div class="btn-group">
+        <button class="header-btn" onclick="saveBook()">Save Book</button>
+        <button class="header-btn" style="background:#ccc" onclick="showTOC('all')">Cancel</button>
+      </div>
     </div>
   </main>
 </div>
@@ -71,7 +85,60 @@
 let books = JSON.parse(localStorage.getItem('readingWikiBooks')) || [];
 let activeFilter = 'all';
 
-function save() { localStorage.setItem('readingWikiBooks', JSON.stringify(books)); renderTOC(); }
+function refresh() {
+    localStorage.setItem('readingWikiBooks', JSON.stringify(books));
+    document.getElementById('cnt-all').textContent = books.length;
+    document.getElementById('cnt-reading').textContent = books.filter(b=>b.status==='reading').length;
+    document.getElementById('cnt-finished').textContent = books.filter(b=>b.status==='finished').length;
+    renderTOC();
+}
+
+function renderTOC() {
+    let list = [...books];
+    if (activeFilter === 'reading') list = list.filter(b => b.status === 'reading');
+    if (activeFilter === 'finished') list = list.filter(b => b.status === 'finished');
+
+    const content = document.getElementById('toc-content');
+    if (list.length === 0) {
+        content.innerHTML = "<p style='color:#7a6e5f'>No books found here.</p>";
+    } else {
+        content.innerHTML = list.map(b => `
+            <div class="book-card">
+                <div style="font-weight:700">${b.title}</div>
+                <div style="font-style:italic; font-size:0.85rem; color:#666">${b.author}</div>
+                <div style="margin-top:10px; font-size:0.7rem; color:var(--amber-dark); text-transform:uppercase">${b.status}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function showNewView() {
+    document.getElementById('toc-view').style.display = 'none';
+    document.getElementById('new-view').style.display = 'block';
+}
+
+function showTOC(filter) {
+    activeFilter = filter;
+    document.getElementById('toc-title').textContent = filter.charAt(0).toUpperCase() + filter.slice(1) + " Books";
+    document.getElementById('new-view').style.display = 'none';
+    document.getElementById('toc-view').style.display = 'block';
+    renderTOC();
+}
+
+function saveBook() {
+    const title = document.getElementById('f-title').value;
+    const author = document.getElementById('f-author').value;
+    const status = document.getElementById('f-status').value;
+
+    if (!title) return alert("Please enter a title");
+
+    books.push({ id: Date.now(), title, author, status });
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-author').value = '';
+    
+    refresh();
+    showTOC('all');
+}
 
 function exportData() {
     const dataStr = JSON.stringify({ books: books }, null, 2);
@@ -79,7 +146,7 @@ function exportData() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "library_backup.json";
+    link.download = "reading_library.json";
     link.click();
 }
 
@@ -90,42 +157,18 @@ function importData(event) {
     reader.onload = (e) => {
         try {
             const imported = JSON.parse(e.target.result);
-            // Handle both wrapped and unwrapped JSON formats
             const newBooks = Array.isArray(imported) ? imported : (imported.books || []);
-            if (newBooks.length > 0) {
-                books = [...books, ...newBooks.filter(nb => !books.some(b => b.id === nb.id))];
-                save();
-                alert("Import successful!");
-            }
-        } catch (err) { alert("Error: File is not a valid library backup."); }
+            // Merge only books with unique IDs
+            books = [...books, ...newBooks.filter(nb => !books.some(b => b.id === nb.id))];
+            refresh();
+            alert("Library updated successfully!");
+        } catch (err) { alert("Import failed: Invalid file."); }
     };
     reader.readAsText(file);
 }
 
-function renderTOC() {
-    let list = [...books];
-    if (activeFilter === 'reading') list = list.filter(b => b.status === 'reading');
-    if (activeFilter === 'finished') list = list.filter(b => b.status === 'finished');
-    
-    document.getElementById('cnt-all').textContent = books.length;
-    document.getElementById('cnt-reading').textContent = books.filter(b=>b.status==='reading').length;
-    document.getElementById('cnt-finished').textContent = books.filter(b=>b.status==='finished').length;
-
-    document.getElementById('toc-content').innerHTML = list.map(b => `
-        <div class="book-card">
-            <div style="flex:1">
-                <div class="book-title">${b.title}</div>
-                <div class="book-author">${b.author}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function showTOC(f) { activeFilter = f; renderTOC(); }
-function handleSearch(q) { /* search logic */ }
-function showNewView() { /* add book logic */ }
-
-renderTOC();
+// Initial load
+refresh();
 </script>
 </body>
 </html>
